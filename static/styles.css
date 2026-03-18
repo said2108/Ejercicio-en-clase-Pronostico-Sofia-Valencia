@@ -1,0 +1,72 @@
+/* Fondo de la pagina - Rosada */
+body {
+    background-color: lightblue;
+
+    /* Centrar todo */
+    display: flex; /* Activa un modo especial para organizar cosas */
+    justify-content: center; /* Centra horizontalmente (izquierda ↔ derecha) */
+    align-items: center; /* Centra verticalmente (arriba ↕ abajo) */
+    min-height: 100vh;
+    font-family: Verdana, Geneva, Tahoma, sans-serif; /* Tipo de letra */
+    margin: 0;
+}
+
+/* Caja principal */
+.contenedor {
+    background-color: mistyrose; /* Color del recuadro */
+    padding: 25px;
+    border-radius: 10px; /* Color del recuadro */
+    box-shadow: 0 0 15px rgb(21, 32, 123); /* Sombra (para que se vea elegante) */
+    width: 700px; /* Ancho del recuadro */
+    text-align: center; /* Centra el texto dentro del recuadro */
+}
+
+/* Inputs - Cajas donde se escribe */
+select, input {
+    margin: 5px;
+    padding: 6px;
+}
+
+/* Botón */
+button {
+    background-color: navy; /* Color del botón */
+    color: white; /* Color del texto del botón */
+    border: none; /* Sin borde */
+    padding: 10px 20px; /* Tamaño del botón */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px; /* Tamaño del texto del botón */
+}
+
+/* Hover del botón */
+button:hover {
+    background-color:rgb(35, 35, 158);
+}
+
+/* Tabla */
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+/* Encabezado */
+th {
+    background-color: navy;
+    color: white;
+    padding: 8px;
+}
+
+/* Celdas */
+td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    background: white;
+}
+
+/* Imagen (gráfica) */
+img {
+    width: 100%;
+    margin-top: 20px;
+    border-radius: 8px;
+}

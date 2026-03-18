@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Pronóstico de Ventas</title>
+
+    <!-- Conecta el CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <h2>Pronóstico de Ventas</h2>
+
+    <!-- Formulario para ingresar los parámetros del pronóstico -->
+    <form method="POST">
+
+        <!-- Selección de producto -->
+        <label>Producto</label><br>
+
+        <select name="producto">
+            <option value="A">Producto A</option>
+            <option value="B">Producto B</option>
+            <option value="C">Producto C</option>
+            <option value="D">Producto D</option>
+            <option value="E">Producto E</option>
+        </select>
+
+        <br><br>
+
+        <!-- Entrada de N -->
+        <label>Valor de N</label><br>
+
+        <input type="number" name="n" placeholder="Ej: 3" min="1" required>
+
+        <br><br>
+
+        <!-- Botón -->
+        <button type="submit">Calcular Pronóstico</button>
+
+    </form>
+
+    <!-- Si hay resultados -->
+    {% if resultado %}
+
+    <h3>Resultados</h3>
+
+    <!-- Tabla de resultados -->
+    <table>
+
+        <tr>
+            <!-- Encabezados -->
+            <th>Producto</th>
+            <th>Pronóstico</th>
+            <th>MYPE</th>
+            <th>MYPE'</th>
+            <th>MSE</th>
+            <th>RMSE</th>
+        </tr>
+
+        <tr>
+            <!-- Filas de resultados -->
+            <td>{{resultado.producto}}</td>
+            <td>{{resultado.pronostico}}</td>
+            <td>{{resultado.MYPE}}</td>
+            <td>{{resultado.MYPEp}}</td>
+            <td>{{resultado.MSE}}</td>
+            <td>{{resultado.RMSE}}</td>
+        </tr>
+
+    </table>
+
+    <h3>Gráfica</h3>
+
+    <!-- Mostrar gráfica -->
+    <img src="data:image/png;base64,{{grafica}}">
+
+    {% endif %}
+
+</div>
+
+</body>
+
+</html>
