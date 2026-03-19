@@ -40,16 +40,37 @@ def pronostico(producto, N):
 # Función para crear el gráfico de ventas y pronóstico
 def crear_grafico(df, producto): #Creamos un gráfico de líneas que muestra las ventas históricas y el pronóstico para el producto seleccionado
 
-    plt.figure() 
-    
+    plt.figure(figsize=(8,5))  # Tamaño del gráfico
+
     # linea de ventas reales
-    plt.plot(df["Mes"], df[producto], label="Ventas")
+    plt.plot(
+        df["Mes"], 
+        df[producto], 
+        marker='o',        # Puntos (como Excel)
+        linestyle='-',     # Línea continua
+        linewidth=2,
+        label="Ventas"
+    )
     
     # Linea de pronóstico
-    plt.plot(df["Mes"], df["Pronostico"], label="Pronóstico")
+    plt.plot(
+        df["Mes"], 
+        df["Pronostico"], 
+        marker='s',        # Puntos cuadrados
+        linestyle='--',    # Línea punteada
+        linewidth=2,
+        label="Pronóstico"
+    )
+
+    plt.xlabel("Mes") # Etiqueta eje X
+    plt.ylabel("Ventas") # Etiqueta eje Y
+
+    plt.xticks(df["Mes"])  # Mostrar todos los meses uno por uno (1,2,3,...)
 
     plt.legend() #Muestra la leyenda (Ventas vs Pronóstico)
     plt.title(producto) #Título del gráfico con el nombre del producto
+
+    plt.grid(True) # Cuadrícula para mejor visualización
 
     # Guardar imagen en memoria
     buffer = BytesIO()
@@ -76,13 +97,13 @@ def index():
     # Si el usuario presiona el botón
     if request.method == "POST":
 
-        # Obtenemos el producto seleccionado desde el formulario HTML
+        # Obtenemos el producto seleccionado desde el formulario HTML, lo que el usuario ingreso en el campo "producto"
         producto = request.form["producto"]
 
         # Agregamos el prefijo "Producto_" al nombre del producto para que coincida con el formato de las columnas en el DataFrame
         producto = "Producto_" + producto
 
-        # Obtenemos el valor de N desde el formulario HTML
+        # Obtenemos el valor de N desde el formulario HTML, lo que el usuario ingreso en el campo "n"
         N = int(request.form["n"])
 
         # Llamamos a la función de pronóstico
