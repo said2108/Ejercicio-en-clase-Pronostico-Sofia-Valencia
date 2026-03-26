@@ -26,10 +26,11 @@
         <br><br>
 
         <label>Método de Pronóstico a Usar</label><br>
-        <select name="metodo" id="select_metodo" required>
-            <option value="Promedio Movil">Promedio Móvil</option>
-            <option value="Suavizacion Exponencial">Suavización Exponencial (statsmodels)</option>
-            <option value="Prophet" selected>Prophet (Meta)</option>
+        <select name="metodo" id="select_metodo" required style="color: gray;" onchange="this.style.color='black'">
+            <option value="" disabled selected hidden>Seleccione un Método</option>
+            <option value="Promedio Movil" style="color: black;">Promedio Móvil</option>
+            <option value="Suavizacion Exponencial" style="color: black;">Suavización Exponencial (statsmodels)</option>
+            <option value="Prophet" style="color: black;">Prophet (Meta)</option>
         </select>
         <br><br>
 
