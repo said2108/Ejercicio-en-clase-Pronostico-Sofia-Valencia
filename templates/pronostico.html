@@ -1,86 +1,222 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>Pronóstico de Ventas</title>
-
+    <title>Pronóstico de Ventas Múltiple</title>
     <!-- Conecta el CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Chart.js para gráficas dinámicas e interactivas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 
 <div class="contenedor">
+    <h2>Sistema de Pronóstico de Ventas</h2>
 
-    <h2>Pronóstico de Ventas</h2>
+    {% if faltantes %}
+    <div style="background-color: #ffcccc; color: darkred; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+        <strong>Aviso:</strong> Faltan librerías en el servidor para correr todos los modelos: {{ faltantes|join(', ') }}. Asegúrate de ejecutar `pip install statsmodels prophet`.
+    </div>
+    {% endif %}
 
-    <!-- Formulario para ingresar los parámetros del pronóstico -->
-    <form method="POST">
+    <!-- Formulario para ingresar los parámetros -->
+    <form method="POST" enctype="multipart/form-data">
+        
+        <label>Archivo CSV de Datos Mensuales</label><br>
+        <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+        <br><br>
 
-        <!-- Selección de producto -->
-        <label>Producto</label><br>
-
-        <select name="producto">
-            <option value="A">Producto A</option>
-            <option value="B">Producto B</option>
-            <option value="C">Producto C</option>
-            <option value="D">Producto D</option>
-            <option value="E">Producto E</option>
+        <label>Método de Pronóstico a Usar</label><br>
+        <select name="metodo" id="select_metodo" required>
+            <option value="Promedio Movil">Promedio Móvil</option>
+            <option value="Suavizacion Exponencial">Suavización Exponencial (statsmodels)</option>
+            <option value="Prophet" selected>Prophet (Meta)</option>
         </select>
-
         <br><br>
 
-        <!-- Entrada de N -->
-        <label>Valor de N</label><br>
+        <div style="display:flex; justify-content:space-evenly; max-width: 60%; margin: 0 auto;">
+            <div>
+                <label title="Aplica para Promedio Móvil">Períodos Históricos (N)</label><br>
+                <input type="number" name="n" placeholder="Ej: 3" value="3" min="1" required>
+            </div>
+            <div>
+                <label>Meses a Proyectar a Futuro</label><br>
+                <input type="number" name="n_futuro" placeholder="Ej: 3" value="3" min="1" required>
+            </div>
+        </div>
+        <br>
 
-        <input type="number" name="n" placeholder="Ej: 3" min="1" required>
-
-        <br><br>
-
-        <!-- Botón -->
-        <button type="submit">Calcular Pronóstico</button>
+        <!-- Botón (inicialmente deshabilitado si no hay archivo) -->
+        <button type="submit" id="btn_calcular" disabled>Calcular Pronóstico</button>
 
     </form>
 
     <!-- Si hay resultados -->
-    {% if resultado %}
+    {% if resultados %}
+    <h3 style="margin-top:40px;">Resultados Analíticos</h3>
+    
+    <!-- Pestañas para cada producto -->
+    <div class="tabs">
+        {% for prod_key, res in resultados.items() %}
+        <button class="tablinks" onclick="abrirTab(event, '{{ prod_key }}')" id="btn_{{ prod_key }}">
+            {{ res.producto }}
+        </button>
+        {% endfor %}
+    </div>
 
-    <h3>Resultados</h3>
+    <!-- Contenido de cada pestaña -->
+    {% for prod_key, res in resultados.items() %}
+    <div id="{{ prod_key }}" class="tabcontent">
+        
+        <h4>Métricas de Rendimiento</h4>
+        <div style="overflow-x: auto;">
+            <table class="tabla-modelos">
+                <tr>
+                    <th>Modelo Implementado</th>
+                    <th>MYPE (%)</th>
+                    <th>MYPE' (%)</th>
+                    <th>MSE</th>
+                    <th>RMSE</th>
+                </tr>
+                {% for mod in res.modelos %}
+                <tr style="background-color: #f9f9f9;">
+                    <td style="color: {{ mod.color }}; font-weight: bold;">{{ mod.nombre }}</td>
+                    <td>{{ mod.MYPE }}</td>
+                    <td>{{ mod.MYPEp }}</td>
+                    <td>{{ mod.MSE }}</td>
+                    <td>{{ mod.RMSE }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
 
-    <!-- Tabla de resultados -->
-    <table>
-
-        <tr>
-            <!-- Encabezados -->
-            <th>Producto</th>
-            <th>Pronóstico</th>
-            <th>MYPE</th>
-            <th>MYPE'</th>
-            <th>MSE</th>
-            <th>RMSE</th>
-        </tr>
-
-        <tr>
-            <!-- Filas de resultados -->
-            <td>{{resultado.producto}}</td>
-            <td>{{resultado.pronostico}}</td>
-            <td>{{resultado.MYPE}}</td>
-            <td>{{resultado.MYPEp}}</td>
-            <td>{{resultado.MSE}}</td>
-            <td>{{resultado.RMSE}}</td>
-        </tr>
-
-    </table>
-
-    <h3>Gráfica</h3>
-
-    <!-- Mostrar gráfica -->
-    <img src="data:image/png;base64,{{grafica}}">
+        <h4 style="margin-top: 30px;">Proyección Visual en el Gráfico de Tiempo</h4>
+        <!-- Contenedor para la gráfica Chart.js -->
+        <div class="chart-container" style="position: relative; height:50vh; width:100%; margin-top: 10px;">
+            <canvas id="chart_{{ prod_key }}"></canvas>
+        </div>
+    </div>
+    {% endfor %}
 
     {% endif %}
 
 </div>
 
-</body>
+<!-- Scripts de lógica de la página -->
+<script>
+    // 1. Validar carga de archivo CSV para habilitar botón
+    document.getElementById('csv_file').addEventListener('change', function() {
+        var btn = document.getElementById('btn_calcular');
+        btn.disabled = this.files.length === 0;
+    });
 
+    {% if resultados %}
+    // 2. Lógica de Pestañas
+    function abrirTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    // Pasar datos calculados en Python a Javascript
+    const resultadosData = {{ resultados | tojson | safe }};
+
+    // 3. Renderizar Gráficas de múltiples modelos con Chart.js
+    window.onload = function() {
+        let primerTab = null;
+
+        for (const [prod_key, res] of Object.entries(resultadosData)) {
+            if (!primerTab) {
+                primerTab = 'btn_' + prod_key;
+            }
+
+            const ctx = document.getElementById('chart_' + prod_key).getContext('2d');
+            
+            // Dataset base: Las ventas reales históricas
+            let all_datasets = [
+                {
+                    label: 'Ventas Reales',
+                    data: res.reales,
+                    borderColor: '#000080', // Navy
+                    backgroundColor: 'rgba(0, 0, 128, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: false,
+                    tension: 0.1
+                }
+            ];
+
+            // Por cada modelo calculado con model() -> fit() -> predict(), añadimos la línea predictiva
+            res.modelos.forEach(mod => {
+                all_datasets.push({
+                    label: mod.nombre,
+                    data: mod.linea_tiempo,
+                    borderColor: mod.color,
+                    backgroundColor: mod.color,
+                    borderWidth: 2,
+                    borderDash: [6, 4],  // Línea punteada para saber que son proyecciones/pronósticos
+                    pointRadius: 2,
+                    pointHoverRadius: 5,
+                    fill: false,
+                    tension: 0.1
+                });
+            });
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: res.fechas,
+                    datasets: all_datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Fecha Final / Mes' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Unidades / Magnitud' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            padding: 10
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 14 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Mostrar la primera pestaña de manera automática
+        if (primerTab) {
+            document.getElementById(primerTab).click();
+        }
+    };
+    {% endif %}
+</script>
+
+</body>
 </html>

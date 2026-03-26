@@ -1,72 +1,126 @@
-/* Fondo de la pagina - Rosada */
+/* Fondo general */
 body {
-    background-color: lightblue;
-
-    /* Centrar todo */
-    display: flex; /* Activa un modo especial para organizar cosas */
-    justify-content: center; /* Centra horizontalmente (izquierda ↔ derecha) */
-    align-items: center; /* Centra verticalmente (arriba ↕ abajo) */
+    background-color: lightsteelblue;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
     min-height: 100vh;
-    font-family: Verdana, Geneva, Tahoma, sans-serif; /* Tipo de letra */
+    font-family: Verdana, Geneva, Tahoma, sans-serif; 
     margin: 0;
+    padding: 30px 0; 
 }
 
 /* Caja principal */
 .contenedor {
-    background-color: mistyrose; /* Color del recuadro */
-    padding: 25px;
-    border-radius: 10px; /* Color del recuadro */
-    box-shadow: 0 0 15px rgb(21, 32, 123); /* Sombra (para que se vea elegante) */
-    width: 700px; /* Ancho del recuadro */
-    text-align: center; /* Centra el texto dentro del recuadro */
+    background-color: ghostwhite; 
+    padding: 35px;
+    border-radius: 12px; 
+    box-shadow: 0 0 20px rgba(0, 0, 128, 0.15); 
+    width: 950px; /* Agrandado más para permitir tablas de hasta 3 métodos juntas */
+    text-align: center; 
 }
 
-/* Inputs - Cajas donde se escribe */
-select, input {
+/* Títulos y separadores */
+h2 {
+    color: navy;
+}
+h3, h4 {
+    color: #333;
+}
+
+/* Inputs y Selects */
+input, select {
     margin: 5px;
-    padding: 6px;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid navy;
+    border-radius: 4px;
+    min-width: 150px;
 }
 
-/* Botón */
+/* Botón principal */
 button {
-    background-color: navy; /* Color del botón */
-    color: white; /* Color del texto del botón */
-    border: none; /* Sin borde */
-    padding: 10px 20px; /* Tamaño del botón */
-    border-radius: 5px;
+    background-color: navy; 
+    color: white; 
+    border: none; 
+    padding: 12px 25px; 
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 16px; /* Tamaño del texto del botón */
+    font-size: 16px; 
+    font-weight: bold;
+    transition: 0.3s; 
+    margin-top: 10px;
 }
-
-/* Hover del botón */
 button:hover {
-    background-color:rgb(35, 35, 158);
+    background-color: rgb(35, 35, 158);
+}
+button:disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+    color: #f0f0f0;
 }
 
-/* Tabla */
-table {
-    width: 100%;
+/* --- TABS --- */
+.tabs {
+    overflow: hidden;
+    border-bottom: 2px solid navy; 
     margin-top: 20px;
-    border-collapse: collapse;
+    display: flex;
+    justify-content: center;
+    gap: 8px; 
+    flex-wrap: wrap; /* Permitir baje renglón si hay muchos productos */
+}
+.tabs button {
+    background-color: white;
+    color: navy;
+    font-weight: bold;
+    border: 2px solid navy;
+    border-bottom: none; 
+    padding: 10px 20px;
+    border-radius: 8px 8px 0 0; 
+    margin: 0;
+}
+.tabs button:hover {
+    background-color: #e6e6fa; 
+}
+.tabs button.active {
+    background-color: navy; 
+    color: white;
 }
 
-/* Encabezado */
-th {
+/* Contenido de pestaña */
+.tabcontent {
+    display: none;
+    padding: 25px;
+    border: 2px solid navy;
+    border-top: none;
+    background-color: #fff; 
+    border-radius: 0 0 8px 8px; 
+    animation: fadeEffect 0.5s;
+}
+
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+/* Tabla Comparativa */
+.tabla-modelos {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+.tabla-modelos th {
     background-color: navy;
     color: white;
-    padding: 8px;
+    padding: 12px;
 }
-
-/* Celdas */
-td {
-    padding: 8px;
+.tabla-modelos td {
+    padding: 12px;
     border: 1px solid #ddd;
-    background: white;
+    background: #fdfdfd;
 }
-
-/* Imagen (gráfica) */
-img {
-    width: 100%;
-    margin-top: 20px;
-    border-radius: 8px;
+.tabla-modelos tr:hover td {
+    background-color: #f1f1f1;
 }
