@@ -1,8 +1,9 @@
 # Importamos librerías necesarias
 from flask import Flask, render_template, request
 import pandas as pd
+import math
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import warnings
 warnings.filterwarnings('ignore')
@@ -94,10 +95,12 @@ class ModeloProphet:
         df_train = df_raw[["Mes", producto]].copy()
         df_train.columns = ["ds", "y"]
         
-        # Prevenir que números simples (1, 2, 3...) se interpreten como nanosegundos
+        # Prevenir que números simples (1, 2, 3...) se interpreten como nanosegundos.
+        # En lugar de sumar meses (que tienen días variables: 28, 30, 31), usamos periodos exactos de 30 días.
+        # Esto previene el "descuadre" o desfase de la estacionalidad en el futuro.
         is_numeric = pd.to_numeric(df_train["ds"], errors='coerce').notna().all()
         if is_numeric:
-            df_train["ds"] = [datetime(2020, 1, 1) + relativedelta(months=i) for i in range(len(df_train))]
+            df_train["ds"] = [datetime(2020, 1, 1) + timedelta(days=30*i) for i in range(len(df_train))]
         else:
             df_train["ds"] = pd.to_datetime(df_train["ds"], errors='coerce')
         
@@ -105,24 +108,28 @@ class ModeloProphet:
         
         if Prophet is not None and not df_train['ds'].isna().all():
             try:
-                # Añadir componente estacional artificial de "2 meses" (~60.8 días) para atrapar el zigzag
-                self.m = Prophet(daily_seasonality=False, weekly_seasonality=False, yearly_seasonality=False, changepoint_prior_scale=0.8)
-                self.m.add_seasonality(name='zigzag_bimensual', period=60.875, fourier_order=5)
+                # changepoint_prior_scale muy bajo (0.01) para una tendencia rígida (simetría a futuro).
+                # period=60 exacto (2 meses de 30 días) para atrapar el zigzag perfecto.
+                self.m = Prophet(daily_seasonality=False, weekly_seasonality=False, yearly_seasonality=False, changepoint_prior_scale=0.01)
+                self.m.add_seasonality(name='zigzag_bimensual', period=60, fourier_order=5)
                 self.m.fit(df_train)
                 predict_train = self.m.predict(df_train)
                 self.ajustados = predict_train['yhat']
             except Exception as e:
                 print("Error Prophet:", e)
-                self.ajustados = pd.Series([None]*self.longitud)
+                self.ajustados = pd.Series([None]*len(df_train))
         else:
-            self.ajustados = pd.Series([None]*self.longitud)
+            self.ajustados = pd.Series([None]*len(df_train))
             
     def predict(self, n_futuro):
         if self.m is not None:
             try:
-                future = self.m.make_future_dataframe(periods=n_futuro, freq='MS')
+                # Para el futuro, creamos fechas exactas cada 30 días para mantener el ritmo matemático
+                last_date = self.m.history['ds'].max()
+                future_dates = [last_date + timedelta(days=30 * i) for i in range(1, n_futuro + 1)]
+                future = pd.DataFrame({'ds': future_dates})
                 forecast = self.m.predict(future)
-                futuros = forecast['yhat'].iloc[-n_futuro:].tolist()
+                futuros = forecast['yhat'].tolist()
             except:
                 futuros = [None] * n_futuro
         else:
@@ -192,8 +199,12 @@ def index():
     
     if request.method == "POST":
         try:
-            N = int(request.form.get("n", 3))
-            n_futuro = int(request.form.get("n_futuro", 1))
+            n_str = request.form.get("n", "3")
+            N = int(n_str) if n_str and n_str.strip() else 3
+            
+            n_fut_str = request.form.get("n_futuro", "1")
+            n_futuro = int(n_fut_str) if n_fut_str and n_fut_str.strip() else 1
+            
             metodo = request.form.get("metodo", "Promedio Movil")
             archivo_csv = request.files.get("csv_file")
             

@@ -34,13 +34,13 @@
         <br><br>
 
         <div style="display:flex; justify-content:space-evenly; max-width: 60%; margin: 0 auto;">
-            <div>
+            <div id="div_n">
                 <label title="Aplica para Promedio Móvil">Períodos Históricos (N)</label><br>
-                <input type="number" name="n" placeholder="Ej: 3" value="3" min="1" required>
+                <input type="number" id="input_n" name="n" placeholder="Ej: 3" min="1" required>
             </div>
             <div>
                 <label>Meses a Proyectar a Futuro</label><br>
-                <input type="number" name="n_futuro" placeholder="Ej: 3" value="3" min="1" required>
+                <input type="number" name="n_futuro" placeholder="Ej: 3" min="1" required>
             </div>
         </div>
         <br>
@@ -103,6 +103,24 @@
 
 <!-- Scripts de lógica de la página -->
 <script>
+    // Lógica para mostrar u ocultar la variable N
+    const selectMetodo = document.getElementById('select_metodo');
+    const divN = document.getElementById('div_n');
+    const inputN = document.getElementById('input_n');
+
+    function actualizarVisibilidadN() {
+        if (selectMetodo.value === 'Promedio Movil') {
+            divN.style.display = 'block';
+            inputN.setAttribute('required', 'required');
+        } else {
+            divN.style.display = 'none';
+            inputN.removeAttribute('required');
+        }
+    }
+
+    selectMetodo.addEventListener('change', actualizarVisibilidadN);
+    actualizarVisibilidadN(); // Ejecutar al cargar la página
+
     // 1. Validar carga de archivo CSV para habilitar botón
     document.getElementById('csv_file').addEventListener('change', function() {
         var btn = document.getElementById('btn_calcular');
